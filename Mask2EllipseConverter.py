@@ -10,8 +10,8 @@ class Mask2EllipseConverter(object):
     mask - mask in opencv's Mat format. Must have one channel. Pixels values must be or 0 (for background) either 1 (for foreground).
     
     Returns:
-    contours - list of points on edge foreground - background in order (x,y) - column, then row index
-    ellispePoints - list of points on egde of fitted ellipse in order (x,y) - column, then row index
+    contours - numpy array of points on edge foreground - background in order (x,y) - column, then row index
+    ellispePoints - numpy array of points on egde of fitted ellipse in order (x,y) - column, then row index
     rotatedRect - an opencv RotatedRect, ellipse[0] - center point, ellipse[1] - size (width and height), ellipse[2] - angle
     '''
     def convert(self, mask):
@@ -30,14 +30,14 @@ class Mask2EllipseConverter(object):
         height, width = np.array(rotatedRect[1], int)
         angle = (int)(rotatedRect[2])
 
-        ellispePoints = cv2.ellipse2Poly((cpY, cpX), (height//2, width//2), angle, 0, 180, 1)
+        ellispePoints = cv2.ellipse2Poly((cpY, cpX), (height//2, width//2), angle, 0, 360, 1)
 
         contoursTmp = []
         for i in range(0, len(contours[0])):
             px = contours[0][i][0][0]
             py = contours[0][i][0][1]
             contoursTmp.append([px, py])
-        contours = contoursTmp
+        contours = np.array(contoursTmp)
 
         return contours, ellispePoints, rotatedRect
         
