@@ -22,8 +22,8 @@ class Mask2EllipseConverter(object):
         img, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if len(contours) == 0:
-            raise ValueError("Given mask does not contain any object")
-        
+            return [None, None, [(0, 0), (0, 0), 0.0]]
+
         rotatedRect = cv2.fitEllipse(contours[0])
         
         cpY, cpX = np.array(rotatedRect[0], int)
@@ -40,7 +40,6 @@ class Mask2EllipseConverter(object):
         contours = np.array(contoursTmp)
 
         return contours, ellispePoints, rotatedRect
-        
 
     def _checkMaskCorrectness(self, mask):
         if len(mask.shape) != 2:
