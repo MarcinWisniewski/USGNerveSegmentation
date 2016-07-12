@@ -9,11 +9,11 @@ import theano.tensor as T
 import lasagne
 import pickle as cPickle
 from reader import Reader
-from CNN.conv_network import CNN
-
+from conv_network import CNN
+from theano.compile.nanguardmode import NanGuardMode
 
 def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=20,
-                    n_kerns=(96, 256, 128, 128, 64), batch_size=128, reduce_training_set=True):
+                    n_kerns=(16, 16, 16, 16), batch_size=64):
     """
 
     :type learning_rate: float
@@ -43,11 +43,12 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     print 'algorithm started at: ', actual_time.isoformat()
 
     rng = numpy.random.RandomState(234555)
-    rd = Reader('~/data/kaggle/nerve/train', batch_size=128, train_size=0.8)
+    rd = Reader('~/data/kaggle/nerve/train', batch_size=batch_size, train_size=0.8)
 
     print 'number of all images - %i' % rd.get_number_of_all_images()
     print 'number of training images - %i' % rd.get_number_of_training_images()
-
+    image_shape = rd.get_img_shape()
+    print 'image shape after reduction - %i, %i' % (image_shape[0], image_shape[1])
     # start-snippet-1
     x = T.tensor4('x', dtype=theano.config.floatX)   # the data is presented as rasterized images
     y = T.matrix('y', dtype=theano.config.floatX)  # the labels are presented as 2D vector of
@@ -57,15 +58,16 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     # BUILD ACTUAL MODEL #
     ######################
     print '... building the model'
-    cnn = CNN(rng, x, n_kerns)
-    prediction = lasagne.layers.get_output(cnn.cnn_layer)
+    cnn = CNN(rng, x, n_kerns, image_shape)
+    print 'number of DNN parameters %i' % cnn.get_number_of_parameters()
+    prediction = lasagne.layers.get_output(cnn.dense_layer)
     loss = lasagne.objectives.squared_error(prediction, y)
     loss = loss.mean()
     params = lasagne.layers.get_all_params(cnn.cnn_layer, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
             loss, params, learning_rate=learning_rate, momentum=momentum)
 
-    test_prediction = lasagne.layers.get_output(cnn.cnn_layer, deterministic=True)
+    test_prediction = lasagne.layers.get_output(cnn.dense_layer, deterministic=True)
     test_loss = lasagne.objectives.squared_error(test_prediction, y)
     test_loss = test_loss.mean()
     # As a bonus, also create an expression for the classification accuracy:
@@ -77,7 +79,8 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     # manually create an update rule for each model parameter. We thus
     # create the updates list by automatically looping over all
     # (params[i], grads[i]) pairs.
-    train_model = theano.function([x, y], loss, updates=updates)
+    train_model = theano.function([x, y], loss, updates=updates,
+                                  mode=NanGuardMode(nan_is_error=True, inf_is_error=True, big_is_error=True))
     validate_model = theano.function([x, y], [test_loss, test_acc])
 
     ###############
@@ -94,7 +97,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     n_test_batches = rd.get_length_of_testing_data()
 
     # early-stopping parameters
-    patience = 10000  # look as this many examples regardless
+    patience = 5000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                            # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -113,13 +116,13 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
 
     epoch = 0
     done_looping = False
-    best_cnn = CNN(rng, x, n_kerns)
+    best_cnn = CNN(rng, x, n_kerns, image_shape)
 
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
         cost_ij = 0
         for minibatch_index in xrange(n_train_batches):
-            batch_train_set_x, batch_train_set_y = rd.get_train_images()
+            batch_train_set_x, batch_train_set_y, minibatch_index = rd.get_train_images(minibatch_index)
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if iter % 100 == 0:
@@ -133,7 +136,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
                 validation_losses = []
                 validation_acc = []
                 for valid_batch in xrange(n_valid_batches):
-                    batch_valid_set_x, batch_valid_set_y = rd.get_batch_validate_images()
+                    batch_valid_set_x, batch_valid_set_y, valid_batch = rd.get_valid_images(valid_batch)
                     if batch_valid_set_x is not None and batch_valid_set_y is not None:
                         err, acc = validate_model(batch_valid_set_x, batch_valid_set_y)
                         validation_losses.append(err)
@@ -160,7 +163,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
                     test_losses = []
                     test_acc = []
                     for test_batch in xrange(n_test_batches):
-                        batch_test_set_x, batch_test_set_y = rd.get_batch_testing_images()
+                        batch_test_set_x, batch_test_set_y, test_batch = rd.get_test_images(test_batch)
                         if batch_test_set_x is not None and batch_test_set_y is not None:
                             err, acc = validate_model(batch_test_set_x, batch_test_set_y)
                             test_losses.append(err)
