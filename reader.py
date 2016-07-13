@@ -7,9 +7,10 @@ from sklearn.cross_validation import train_test_split
 from Mask2EllipseConverter import Mask2EllipseConverter
 import matplotlib.pyplot as plt
 
+
 IMAGE_MULTIPLIER = 8
 IMAGE_SHAPE = (420.0, 580.0)
-
+IMAGE_SHAPE = (IMAGE_SHAPE[0]/2.0, IMAGE_SHAPE[1]/2.0)
 
 class Reader(object):
     def __init__(self, img_path, batch_size, train_size=0.8):
@@ -71,6 +72,8 @@ class Reader(object):
             img_iterator += i
             img = cv2.imread(images[img_iterator], 0)
             mask = cv2.imread(images[img_iterator].replace('.', '_mask.'), 0)
+            img = cv2.resize(img, None, fx=0.5, fy=0.5)
+            mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
 
             for y_axis in xrange(IMAGE_MULTIPLIER):
                 for x_axis in xrange(IMAGE_MULTIPLIER):

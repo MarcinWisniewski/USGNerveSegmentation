@@ -10,8 +10,10 @@ class CNN(object):
         self.cnn_layer = lasagne.layers.InputLayer(shape=(None, 1, int(img_shape[0]), int(img_shape[1])),
                                                    input_var=self.layer0_input)
 
+        #self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
+
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[0],
-                                                    filter_size=(5, 5), stride=(4, 4), pad='same',
+                                                    filter_size=(3, 3), pad='same',
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
@@ -19,29 +21,82 @@ class CNN(object):
                                                     filter_size=(3, 3), pad='same',
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
-        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[2],
-                                                    filter_size=(3, 3), pad='same',
+                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
-        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[3],
                                                     filter_size=(3, 3), pad='same',
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[4],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[5],
+                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[6],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[7],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[8],
+                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[9],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[10],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[11],
+                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[12],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[13],
+                                                    filter_size=(3, 3), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
+        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[14],
+                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
+                                                    W=lasagne.init.GlorotNormal(),
+                                                    nonlinearity=lasagne.nonlinearities.rectify)
+
         self.dense_layer = lasagne.layers.DenseLayer(lasagne.layers.dropout(self.cnn_layer, p=.5),
                                                      W=lasagne.init.GlorotNormal(),
-                                                     num_units=16, nonlinearity=lasagne.nonlinearities.rectify)
+                                                     num_units=256, nonlinearity=lasagne.nonlinearities.rectify)
         self.dense_layer = lasagne.layers.DenseLayer(lasagne.layers.dropout(self.dense_layer, p=.5),
                                                      W=lasagne.init.GlorotNormal(),
-                                                     num_units=16, nonlinearity=lasagne.nonlinearities.rectify)
+                                                     num_units=256, nonlinearity=lasagne.nonlinearities.rectify)
 
         self.dense_layer = lasagne.layers.DenseLayer(self.dense_layer, num_units=5,
                                                      W=lasagne.init.GlorotNormal(),
-                                                     nonlinearity=lasagne.nonlinearities.identity)
+                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
         # Create a loss expression for training, i.e., a scalar objective we want
         # to minimize (for our multi-class problem, it is the cross-entropy loss):

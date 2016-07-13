@@ -12,10 +12,10 @@ from reader import Reader
 from conv_network import CNN
 from theano.compile.nanguardmode import NanGuardMode
 
-def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=20,
-                    n_kerns=(16, 16, 16, 16), batch_size=64):
-    """
 
+def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=20,
+                    n_kerns=(16, 16, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), batch_size=64):
+    """
     :type learning_rate: float
     :param learning_rate: learning rate used (factor for the stochastic
                           gradient)
@@ -34,9 +34,6 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
 
     :type batch_size: int
     :param batch_size: number of examples in minibatch
-
-    :type reduce_training_set: bool
-    :param reduce_training_set: debugging switch, reduce training set to check convergence of CNN
     """
 
     actual_time = datetime.datetime.now().time()
@@ -70,18 +67,14 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     test_prediction = lasagne.layers.get_output(cnn.dense_layer, deterministic=True)
     test_loss = lasagne.objectives.squared_error(test_prediction, y)
     test_loss = test_loss.mean()
-    # As a bonus, also create an expression for the classification accuracy:
-    test_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), y),
-                      dtype=theano.config.floatX)
 
     # train_model is a function that updates the model parameters by
     # SGD Since this model has many parameters, it would be tedious to
     # manually create an update rule for each model parameter. We thus
     # create the updates list by automatically looping over all
     # (params[i], grads[i]) pairs.
-    train_model = theano.function([x, y], loss, updates=updates,
-                                  mode=NanGuardMode(nan_is_error=True, inf_is_error=True, big_is_error=True))
-    validate_model = theano.function([x, y], [test_loss, test_acc])
+    train_model = theano.function([x, y], loss, updates=updates)
+    validate_model = theano.function([x, y], test_loss)
 
     ###############
     # TRAIN MODEL #
@@ -97,7 +90,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     n_test_batches = rd.get_length_of_testing_data()
 
     # early-stopping parameters
-    patience = 5000  # look as this many examples regardless
+    patience = 100  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                            # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -134,19 +127,15 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
             if (iter + 1) % validation_frequency == 0:
                 # compute zero-one loss on validation set
                 validation_losses = []
-                validation_acc = []
                 for valid_batch in xrange(n_valid_batches):
                     batch_valid_set_x, batch_valid_set_y, valid_batch = rd.get_valid_images(valid_batch)
                     if batch_valid_set_x is not None and batch_valid_set_y is not None:
-                        err, acc = validate_model(batch_valid_set_x, batch_valid_set_y)
+                        err = validate_model(batch_valid_set_x, batch_valid_set_y)
                         validation_losses.append(err)
-                        validation_acc.append(acc)
 
-                this_validation_loss = numpy.mean(validation_losses)
-                mean_validation_acc = numpy.mean(validation_acc)
-                print 'epoch %i, minibatch %i/%i, validation error %f %% and accuracy  %f %%' % \
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100., mean_validation_acc)
+                this_validation_loss = float(numpy.mean(validation_losses))
+                print 'epoch %i, minibatch %i/%i, validation error %f %% ' % \
+                      (epoch, minibatch_index + 1, n_train_batches, this_validation_loss*100.0)
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
@@ -161,13 +150,11 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
 
                     # test it on the test set
                     test_losses = []
-                    test_acc = []
                     for test_batch in xrange(n_test_batches):
                         batch_test_set_x, batch_test_set_y, test_batch = rd.get_test_images(test_batch)
                         if batch_test_set_x is not None and batch_test_set_y is not None:
-                            err, acc = validate_model(batch_test_set_x, batch_test_set_y)
+                            err = validate_model(batch_test_set_x, batch_test_set_y)
                             test_losses.append(err)
-                            test_acc.append(acc)
 
                     test_score = numpy.mean(test_losses)
                     print(('     epoch %i, minibatch %i/%i, test error of '
