@@ -90,7 +90,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     n_test_batches = rd.get_length_of_testing_data()
 
     # early-stopping parameters
-    patience = 100  # look as this many examples regardless
+    patience = 1000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                            # found
     improvement_threshold = 0.995  # a relative improvement of this much is
