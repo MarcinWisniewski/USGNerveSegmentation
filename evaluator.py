@@ -119,10 +119,10 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if iter % 100 == 0:
-                print 'training @ iter = %d, with cost = %f' % (iter, cost_ij)
+                print 'training @ iter = %d, with cost = %f' % (iter, cost_ij/minibatch_index)
 
             if batch_train_set_x is not None and batch_train_set_y is not None:
-                cost_ij = train_model(batch_train_set_x, batch_train_set_y)
+                cost_ij += train_model(batch_train_set_x, batch_train_set_y)
 
             if (iter + 1) % validation_frequency == 0:
                 # compute zero-one loss on validation set

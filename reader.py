@@ -5,8 +5,10 @@ import cv2
 import theano
 from sklearn.cross_validation import train_test_split
 from Mask2EllipseConverter import Mask2EllipseConverter
-import matplotlib.pyplot as plt
-
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
 IMAGE_MULTIPLIER = 8
 IMAGE_SHAPE = (420.0, 580.0)
