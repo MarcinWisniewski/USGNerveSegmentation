@@ -16,24 +16,30 @@ IMAGE_SHAPE = (420.0/2.0, 580.0/2.0)
 
 
 class Reader(object):
-    def __init__(self, img_path, batch_size, train_size=0.8):
+    def __init__(self, img_path, batch_size, multiply_image=True, train_size=0.8):
         '''
         :param img_path: path to train or test images
         :param batch_size: number of images in minibatch (must be multiplication of 64 )
         '''
+        self.multiply_image = multiply_image
         self.minibatch = batch_size
         self.mask2ellipse = Mask2EllipseConverter()
         self.img_path = os.path.expanduser(img_path)
         self.images = glob.glob(self.img_path+'/*[0-9].tif')
-        self.train_images, test_valid_images, \
-                   dummy1, dummy2 = train_test_split(self.images,
-                                                     np.ones(len(self.images)),
-                                                     train_size=train_size,
-                                                     random_state=1234)
-        self.test_images, self.valid_images, \
-                  dummy1, dummy2 = train_test_split(test_valid_images,
-                                                    np.ones(len(test_valid_images)),
-                                                    train_size=0.5, random_state=1234)
+        if train_size < 1.0:
+            self.train_images, test_valid_images, \
+                       dummy1, dummy2 = train_test_split(self.images,
+                                                         np.ones(len(self.images)),
+                                                         train_size=train_size,
+                                                         random_state=1234)
+            self.test_images, self.valid_images, \
+                      dummy1, dummy2 = train_test_split(test_valid_images,
+                                                        np.ones(len(test_valid_images)),
+                                                        train_size=0.5, random_state=1234)
+        else:
+            self.train_images = self.images
+            self.test_images, self.valid_images = None, None
+
         self.train_images_buffer = None
         self.test_images_buffer = None
         self.valid_images_buffer = None
@@ -119,10 +125,20 @@ class Reader(object):
     def _fill_image_buffers(self, image_type, img_iterator):
         images = image_type
         img = cv2.imread(images[img_iterator], 0)
+        if os.path.isfile(images[img_iterator].replace('.', '_mask.')):
+            mask = cv2.imread(images[img_iterator].replace('.', '_mask.'), 0)
+        else:
+            mask = np.zeros(img.shape, dtype='uint8')
 
-        mask = cv2.imread(images[img_iterator].replace('.', '_mask.'), 0)
         img, mask = self._resize_img_and_mask(img, mask)
-        multiplied_img, transformed_multiplied_mask = self._multiply_images(img, mask)
+        if self.multiply_image:
+            multiplied_img, multiplied_mask = self._multiply_images(img, mask)
+        else:
+            multiplied_img, multiplied_mask = img[: -IMAGE_CROP, : -IMAGE_CROP]/255.0, mask[: -IMAGE_CROP, : -IMAGE_CROP]
+            multiplied_mask = np.expand_dims(multiplied_mask, axis=0)
+            multiplied_img = np.asarray(np.expand_dims(multiplied_img, axis=0), dtype=theano.config.floatX)
+
+        transformed_multiplied_mask = self._convert_mask_to_ellipse_params(multiplied_mask)
         multiplied_img = np.asarray(np.expand_dims(multiplied_img, 1), dtype=theano.config.floatX)
         transformed_multiplied_mask = np.asarray(transformed_multiplied_mask, dtype=theano.config.floatX)
         return [multiplied_img, transformed_multiplied_mask]
@@ -131,24 +147,29 @@ class Reader(object):
         crop_img_shape = np.asarray(self.get_img_shape())
         multiplied_img = np.zeros(np.append(IMAGE_MULTIPLIER, crop_img_shape), dtype=theano.config.floatX)
         multiplied_mask = np.copy(multiplied_img)
-        transformed_multiplied_mask = np.zeros((IMAGE_MULTIPLIER, 5), dtype=theano.config.floatX)
+        multiplied_mask = np.asarray(multiplied_mask, dtype='uint8')
         img_num = 0
         for y_axis in xrange(IMAGE_CROP):
             for x_axis in xrange(IMAGE_CROP):
                 multiplied_img[img_num] = img[y_axis:y_axis + crop_img_shape[0],
-                                          x_axis:x_axis + crop_img_shape[1]] / 255.0
+                                              x_axis:x_axis + crop_img_shape[1]] / 255.0
                 multiplied_mask[img_num] = mask[y_axis:y_axis + crop_img_shape[0],
-                                           x_axis:x_axis + crop_img_shape[1]]
-                temp_transformed_multiplied_mask = \
-                    self.mask2ellipse.convert(mask[y_axis:y_axis + crop_img_shape[0],
-                                              x_axis:x_axis + crop_img_shape[1]])[2]
-                temp_transformed_multiplied_mask = self._convert_tuples_to_list(temp_transformed_multiplied_mask)
-
-                transformed_multiplied_mask[img_num] = temp_transformed_multiplied_mask / \
-                                                       (IMAGE_SHAPE[0], IMAGE_SHAPE[1], IMAGE_SHAPE[0], IMAGE_SHAPE[1],
-                                                        360.0)
+                                                x_axis:x_axis + crop_img_shape[1]]
                 img_num += 1
-        return multiplied_img, transformed_multiplied_mask
+
+        return multiplied_img, multiplied_mask
+
+    def _convert_mask_to_ellipse_params(self, multiplied_masks):
+        transformed_multiplied_mask = np.zeros((len(multiplied_masks), 5), dtype=theano.config.floatX)
+        for image_num in xrange(len(multiplied_masks)):
+            temp_transformed_multiplied_mask = \
+                    self.mask2ellipse.convert(multiplied_masks[image_num])[2]
+            temp_transformed_multiplied_mask = self._convert_tuples_to_list(temp_transformed_multiplied_mask)
+
+            transformed_multiplied_mask[image_num] = temp_transformed_multiplied_mask / \
+                                                    (IMAGE_SHAPE[0], IMAGE_SHAPE[1], IMAGE_SHAPE[0], IMAGE_SHAPE[1],
+                                                     360.0)
+        return transformed_multiplied_mask
 
     @staticmethod
     def _resize_img_and_mask(img, mask):
@@ -167,7 +188,7 @@ class Reader(object):
 
 
 if __name__ == '__main__':
-    rd = Reader('~/data/kaggle/nerve/train', 32)
+    rd = Reader('~/data/kaggle/nerve/train', 32, multiply_image=True)
     iters = rd.get_length_of_training_data()
     #for i in xrange(iters):
     #    train = rd.get_train_images()
