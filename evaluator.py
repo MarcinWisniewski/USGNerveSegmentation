@@ -13,8 +13,8 @@ from conv_network import CNN
 from theano.compile.nanguardmode import NanGuardMode
 
 
-def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=20,
-                    n_kerns=(16, 16, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), batch_size=64):
+def start_learning(learning_rate=0.02, momentum=0.9, use_model=True, n_epochs=20,
+                    n_kerns=(16, 16, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), batch_size=32):
     """
     :type learning_rate: float
     :param learning_rate: learning rate used (factor for the stochastic
@@ -90,7 +90,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
     n_test_batches = rd.get_length_of_testing_data()
 
     # early-stopping parameters
-    patience = 1000  # look as this many examples regardless
+    patience = 2000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                            # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -115,11 +115,11 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
         epoch += 1
         cost_ij = 0
         for minibatch_index in xrange(n_train_batches):
-            batch_train_set_x, batch_train_set_y, minibatch_index = rd.get_train_images(minibatch_index)
+            batch_train_set_x, batch_train_set_y = rd.get_train_images()
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if iter % 100 == 0:
-                print 'training @ iter = %d, with cost = %f' % (iter, cost_ij/minibatch_index)
+                print 'training @ iter = %d, with cost = %f' % (iter, cost_ij/(minibatch_index+1))
 
             if batch_train_set_x is not None and batch_train_set_y is not None:
                 cost_ij += train_model(batch_train_set_x, batch_train_set_y)
@@ -128,7 +128,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
                 # compute zero-one loss on validation set
                 validation_losses = []
                 for valid_batch in xrange(n_valid_batches):
-                    batch_valid_set_x, batch_valid_set_y, valid_batch = rd.get_valid_images(valid_batch)
+                    batch_valid_set_x, batch_valid_set_y = rd.get_valid_images()
                     if batch_valid_set_x is not None and batch_valid_set_y is not None:
                         err = validate_model(batch_valid_set_x, batch_valid_set_y)
                         validation_losses.append(err)
@@ -151,7 +151,7 @@ def start_learning(learning_rate=0.01, momentum=0.9, use_model=False, n_epochs=2
                     # test it on the test set
                     test_losses = []
                     for test_batch in xrange(n_test_batches):
-                        batch_test_set_x, batch_test_set_y, test_batch = rd.get_test_images(test_batch)
+                        batch_test_set_x, batch_test_set_y = rd.get_test_images()
                         if batch_test_set_x is not None and batch_test_set_y is not None:
                             err = validate_model(batch_test_set_x, batch_test_set_y)
                             test_losses.append(err)

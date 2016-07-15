@@ -42,6 +42,8 @@ class Reader(object):
         self.valid_images_index = 0
 
     def get_train_images(self):
+        if self.train_images_index >= len(self.train_images):
+            self.train_images_index = 0
         if self.train_images_buffer is None:
             self.train_images_buffer = self._fill_image_buffers(self.train_images, self.train_images_index)
             self.train_images_index += 1
@@ -59,6 +61,8 @@ class Reader(object):
         return minibatch_images
 
     def get_test_images(self):
+        if self.test_images_index >= len(self.test_images):
+            self.test_images_index = 0
         if self.test_images_buffer is None:
             self.test_images_buffer = self._fill_image_buffers(self.test_images, self.test_images_index)
             self.test_images_index += 1
@@ -76,6 +80,8 @@ class Reader(object):
         return minibatch_images
 
     def get_valid_images(self):
+        if self.valid_images_index >= len(self.valid_images):
+            self.valid_images_index = 0
         if self.valid_images_buffer is None:
             self.valid_images_buffer = self._fill_image_buffers(self.valid_images, self.valid_images_index)
             self.valid_images_index += 1
@@ -93,13 +99,13 @@ class Reader(object):
         return minibatch_images
 
     def get_length_of_training_data(self):
-        return len(self.train_images)*IMAGE_MULTIPLIER//self.minibatch
+        return len(self.train_images)*IMAGE_MULTIPLIER//self.minibatch - 1
 
     def get_length_of_testing_data(self):
-        return len(self.test_images)*IMAGE_MULTIPLIER//self.minibatch
+        return len(self.test_images)*IMAGE_MULTIPLIER//self.minibatch - 1
 
     def get_length_of_valid_data(self):
-        return len(self.valid_images)*IMAGE_MULTIPLIER//self.minibatch
+        return len(self.valid_images)*IMAGE_MULTIPLIER//self.minibatch - 1
 
     def get_number_of_all_images(self):
         return len(self.images)*IMAGE_MULTIPLIER
@@ -113,6 +119,7 @@ class Reader(object):
     def _fill_image_buffers(self, image_type, img_iterator):
         images = image_type
         img = cv2.imread(images[img_iterator], 0)
+
         mask = cv2.imread(images[img_iterator].replace('.', '_mask.'), 0)
         img, mask = self._resize_img_and_mask(img, mask)
         multiplied_img, transformed_multiplied_mask = self._multiply_images(img, mask)
