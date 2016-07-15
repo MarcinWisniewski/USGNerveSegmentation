@@ -167,7 +167,10 @@ class Reader(object):
             temp_transformed_multiplied_mask = self._convert_tuples_to_list(temp_transformed_multiplied_mask)
 
             transformed_multiplied_mask[image_num] = temp_transformed_multiplied_mask / \
-                                                    (IMAGE_SHAPE[0], IMAGE_SHAPE[1], IMAGE_SHAPE[0], IMAGE_SHAPE[1],
+                                                    (IMAGE_SHAPE[0]-IMAGE_CROP,
+                                                     IMAGE_SHAPE[1]-IMAGE_CROP,
+                                                     IMAGE_SHAPE[0]-IMAGE_CROP,
+                                                     IMAGE_SHAPE[1]-IMAGE_CROP,
                                                      360.0)
         return transformed_multiplied_mask
 
