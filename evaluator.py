@@ -39,7 +39,7 @@ def start_learning(learning_rate=0.02, momentum=0.9, use_model=True, n_epochs=20
     print 'algorithm started at: ', actual_time.isoformat()
 
     rng = numpy.random.RandomState(234555)
-    rd = Reader('~/data/kaggle/nerve/train', batch_size=batch_size, train_size=0.8)
+    rd = Reader('../data/train', batch_size=batch_size, train_size=0.8)
 
     print 'number of all images - %i' % rd.get_number_of_all_images()
     print 'number of training images - %i' % rd.get_number_of_training_images()
