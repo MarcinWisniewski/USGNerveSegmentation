@@ -44,8 +44,17 @@ def test_cnn(n_kerns=(16, 16, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), batch_si
     predicted_runlength = []
     for ellipse in denormalized_predicted_ellipses:
         mask = ellipse2mask_converter.convertFromRotatedRectangle(ellipse, image_shape[0], image_shape[1])
-        runlength = predicted_runlength = mask2runlength_converter.convert(mask)
+        runlength = mask2runlength_converter.convert(mask)
         predicted_runlength.append(runlength)
+
+    with open('result.csv', 'w') as file:
+        file.write('img,pixel\n')
+        i = 1
+        for i in range(len(predicted_runlength)):
+            runlength = predicted_runlength[i]
+            line = map(str, runlength)
+            line = ' '.join(line)
+            file.write(str(i) + ',' + line + '\n')
 
     print('kunec')
 
@@ -70,7 +79,7 @@ def convert_to_ellipses(predicted_values):
             tmp = value[0:len(value)-1]
             tmp[tmp <= 0] = 1
             # continue
-        ellipse = [(int(value[0]), int(value[1])), (int(value[2]), int(value[3])), value[4]]
+        ellipse = ((int(value[0]), int(value[1])), (int(value[2]), int(value[3])), value[4])
         predicted_ellipses.append(ellipse)
     return predicted_ellipses
 
