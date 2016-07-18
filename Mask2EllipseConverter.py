@@ -19,7 +19,7 @@ class Mask2EllipseConverter(object):
 
         copy = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
 
-        img, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        img, contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if len(contours) == 0:
             return [None, None, [(0, 0), (0, 0), 0.0]]

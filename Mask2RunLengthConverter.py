@@ -16,7 +16,7 @@ class Mask2RunLengthConverter(object):
         self._checkMaskCorrectness(mask)
 
         runLength = []        
-        onRun = False;
+        onRun = False
         onRunCounter = 0
         for x in xrange(mask.shape[1]):
             for y in xrange(mask.shape[0]):

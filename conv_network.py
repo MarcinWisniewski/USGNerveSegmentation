@@ -21,11 +21,7 @@ class CNN(object):
                                                     filter_size=(3, 3), pad='same',
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
-
-        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[2],
-                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
-                                                    W=lasagne.init.GlorotNormal(),
-                                                    nonlinearity=lasagne.nonlinearities.rectify)
+        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[3],
                                                     filter_size=(3, 3), pad='same',
@@ -37,10 +33,7 @@ class CNN(object):
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
-        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[5],
-                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
-                                                    W=lasagne.init.GlorotNormal(),
-                                                    nonlinearity=lasagne.nonlinearities.rectify)
+        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[6],
                                                     filter_size=(3, 3), pad='same',
@@ -52,10 +45,7 @@ class CNN(object):
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
-        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[8],
-                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
-                                                    W=lasagne.init.GlorotNormal(),
-                                                    nonlinearity=lasagne.nonlinearities.rectify)
+        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[9],
                                                     filter_size=(3, 3), pad='same',
@@ -67,10 +57,7 @@ class CNN(object):
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
-        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[11],
-                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
-                                                    W=lasagne.init.GlorotNormal(),
-                                                    nonlinearity=lasagne.nonlinearities.rectify)
+        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[12],
                                                     filter_size=(3, 3), pad='same',
@@ -82,10 +69,7 @@ class CNN(object):
                                                     W=lasagne.init.GlorotNormal(),
                                                     nonlinearity=lasagne.nonlinearities.rectify)
 
-        self.cnn_layer = lasagne.layers.Conv2DLayer(incoming=self.cnn_layer, num_filters=n_kerns[14],
-                                                    filter_size=(3, 3), stride=(2, 2), pad='same',
-                                                    W=lasagne.init.GlorotNormal(),
-                                                    nonlinearity=lasagne.nonlinearities.rectify)
+        self.cnn_layer = lasagne.layers.MaxPool2DLayer(self.cnn_layer, pool_size=(2, 2))
 
         self.dense_layer = lasagne.layers.DenseLayer(lasagne.layers.dropout(self.cnn_layer, p=.5),
                                                      W=lasagne.init.GlorotNormal(),
@@ -94,7 +78,7 @@ class CNN(object):
                                                      W=lasagne.init.GlorotNormal(),
                                                      num_units=256, nonlinearity=lasagne.nonlinearities.rectify)
 
-        self.dense_layer = lasagne.layers.DenseLayer(self.dense_layer, num_units=5,
+        self.dense_layer = lasagne.layers.DenseLayer(self.dense_layer, num_units=2,
                                                      W=lasagne.init.GlorotNormal(),
                                                      nonlinearity=lasagne.nonlinearities.rectify)
 

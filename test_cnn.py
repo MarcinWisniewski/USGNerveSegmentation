@@ -15,7 +15,7 @@ from Mask2RunLengthConverter import Mask2RunLengthConverter
 def test_cnn(n_kerns=(16, 16, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), batch_size=32):
     rng = numpy.random.RandomState(234555)
 
-    rd = Reader('../data/test', batch_size=batch_size, multiply_image=False, train_size=1.0)
+    rd = Reader('~/data/kaggle/nerve/test', batch_size=batch_size, multiply_image=False, train_size=1.0)
     x = T.tensor4('x', dtype=theano.config.floatX)   # the data is presented as rasterized images
 
     image_shape = rd.get_img_shape()
