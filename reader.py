@@ -22,7 +22,7 @@ class Reader(object):
         :param batch_size: number of images in minibatch (must be multiplication of 64 )
         '''
         self.multiply_image = multiply_image
-        self.minibatch = batch_sizeh
+        self.minibatch = batch_size
         self.mask2ellipse = Mask2EllipseConverter()
         self.img_path = os.path.expanduser(img_path)
         self.images = glob.glob(self.img_path+'/*[0-9].tif')
@@ -165,12 +165,11 @@ class Reader(object):
         transformed_multiplied_mask = np.zeros((len(multiplied_masks), 2), dtype=theano.config.floatX)
         for image_num in xrange(len(multiplied_masks)):
             temp_transformed_multiplied_mask = \
-                    self.mask2ellipse.convert(multiplied_masks[image_num].T)[2]
-            temp_transformed_multiplied_mask = self._convert_tuples_to_list(temp_transformed_multiplied_mask)[0:2]
+                    self.mask2ellipse.convert(multiplied_masks[image_num])
 
-            transformed_multiplied_mask[image_num] = temp_transformed_multiplied_mask / \
-                                                    (IMAGE_SHAPE[0]-IMAGE_CROP,
-                                                     IMAGE_SHAPE[1]-IMAGE_CROP)
+            transformed_multiplied_mask[image_num] = temp_transformed_multiplied_mask[:2] / \
+                                                     ((IMAGE_SHAPE[0]-IMAGE_CROP),
+                                                      (IMAGE_SHAPE[1]-IMAGE_CROP))
                                                      #IMAGE_SHAPE[0]-IMAGE_CROP,
                                                      #IMAGE_SHAPE[1]-IMAGE_CROP,
                                                      #360.0)
@@ -181,15 +180,6 @@ class Reader(object):
         img = cv2.resize(img, None, fx=0.5, fy=0.5)
         mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
         return img, mask
-
-    @staticmethod
-    def _convert_tuples_to_list(tuples):
-        result_list = []
-        for element in tuples:
-            if type(element) == float:
-                element = [element]
-            result_list += element
-        return np.asarray(result_list, dtype=theano.config.floatX)
 
 
 if __name__ == '__main__':

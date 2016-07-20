@@ -19,27 +19,18 @@ class Mask2EllipseConverter(object):
 
         copy = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
 
-        img, contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        img, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if len(contours) == 0:
-            return [None, None, [(0, 0), (0, 0), 0.0]]
+            return np.asarray([0, 0, 0, 0, 0])
 
         rotatedRect = cv2.fitEllipse(contours[0])
         
-        cpY, cpX = np.array(rotatedRect[0], int)
+        cpX, cpY = np.array(rotatedRect[0], int)
         height, width = np.array(rotatedRect[1], int)
         angle = (int)(rotatedRect[2])
 
-        ellispePoints = cv2.ellipse2Poly((cpY, cpX), (height//2, width//2), angle, 0, 360, 1)
-
-        contoursTmp = []
-        for i in range(0, len(contours[0])):
-            px = contours[0][i][0][0]
-            py = contours[0][i][0][1]
-            contoursTmp.append([px, py])
-        contours = np.array(contoursTmp)
-
-        return contours, ellispePoints, rotatedRect
+        return np.asarray([cpY, cpX, height, width, angle])
 
     def _checkMaskCorrectness(self, mask):
         if len(mask.shape) != 2:
